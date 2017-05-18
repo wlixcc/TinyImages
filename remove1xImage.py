@@ -46,8 +46,8 @@ def alterJson(path):
     with open(path, 'w', encoding='utf-8') as f:
         f.write(jsonstr)
 
-inputPath = ''
 
+inputPath = ''
 
 try:
     opts = getopt.getopt(sys.argv[1:], 'i:h')[0]

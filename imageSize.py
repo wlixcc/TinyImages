@@ -48,7 +48,7 @@ try:
             limit = int(value)
         elif op == '-h':
             print('''
-              使用方法：  python3 imageSize.py -i 项目路径 -l 打印数量(默认为10)
+              使用方法：  python3 imageSize.py -i 项目路径 [-l 打印数量]
             ''')
 except getopt.GetoptError:
     print('使用-h获取帮助信息')

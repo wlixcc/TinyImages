@@ -4,8 +4,11 @@
 
 import os, shutil, getopt, sys
 
-# 创建输出文件夹
 def createOutput(path):
+    """
+    :param path: 输入path位inputpath,用来计算相对路径
+    :return: None
+    """
     global outputPath
 
     # 创建默认输出目录
@@ -26,7 +29,12 @@ def createOutput(path):
 
 # 为所有png添加后缀
 def addSuffix(path, suffix, replace):
-
+    """
+    :param path: input path
+    :param suffix: 后缀
+    :param replace: 是否直接替换
+    :return: None
+    """
     suffix = str(suffix)
 
     for x in os.listdir(path):
@@ -42,7 +50,8 @@ def addSuffix(path, suffix, replace):
                 newName = x[:pIndex] + suffix + x[pIndex:]
             else:
                 newName = x[:index] + suffix + x[index:]
-            print('%s ----> %s' % (x, newName))
+            info = '%s ----> %s' % (x, newName)
+            print('\033[1;32;48m' + info + '\033[0m')
             if replace:
                 newPath = os.path.join(os.path.split(absPath)[0], newName)
                 os.rename(absPath, newPath)
@@ -75,7 +84,7 @@ suffix = ''
 replace = False
 
 try:
-    opts = getopt.getopt(sys.argv[1:], 'i:h')[0]
+    opts = getopt.getopt(sys.argv[1:], 'i:s:o:rh')[0]
     for op, value in opts:
         if op == '-i':
             inputPath = value
@@ -87,11 +96,11 @@ try:
             replace = True
         elif op == '-h':
             print('''
-              使用方法：  python3 imageSuffix.py -i 输入目录 -s 后缀 -o 输出目录(可省略,会默认生成输出路径) -r(直接覆盖替换)
+              使用方法：  python3 imageSuffix.py -i 输入目录 -s 后缀 [-o 输出目录] [-r]
               例: python3 imageSuffix.py -i /Users/S/Desktop/images -s AA  -o /Users/S/Desktop/newImages
             ''')
 except getopt.GetoptError:
-    print('使用-h获取帮助信息')
+    print('命令出错,使用-h获取帮助信息')
 
 
 if __name__ == '__main__':
