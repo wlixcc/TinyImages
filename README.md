@@ -20,7 +20,8 @@
 
 	-i参数后面带图片文件夹路径,-a参数后面是APIKey。如果输入-r(可选)参数,直接替换原文件， -o(可选)参数可自定义输出目录
 	
-	比如你想压缩`/Users/S/Desktop/Assets.xcassets`下的所有图片并且直接替换:`$ python3 tinyImages.py -i /Users/S/Desktop/Assets.xcassets -a wwj8jDJZG0Y7b80jMakg3SJm64BrK8wR -r`
+	比如你想压缩`/Users/S/Desktop/Assets.xcassets`下的所有图片并且直接替换:
+> 例:`$ python3 tinyImages.py -i /Users/S/Desktop/Assets.xcassets -a wwj8jDJZG0Y7b80jMakg3SJm64BrK8wR -r`
 
 > 如使用-r参数,使用前请备份图片文件，以免出现网络断开，压缩数量超过限制等意外情况。
 
@@ -32,18 +33,21 @@
 - 会自动搜索项目下的`.xcassets`文件夹目录
 
 2. `python3 remove1xImage.py -i 项目路径`  
-	例：`$ python3 remove1xImage.py -i /Users/S/Desktop/testAPP`
+
+	> `$ python3 remove1xImage.py -i /Users/S/Desktop/testAPP`
 	
 
 #### `imageSuffix.py`批量给图片添加后缀
 - 针对iOS的图片处理写的，对@2x,@3x图片也能正确添加后缀
 
 1. `python3 imageSuffix.py -i 输入目录 -s 后缀名 [-o 输出目录] [-r]`
-	例，给所有图片添加`test`后缀:`$ python3 imageSuffix.py -i /Users/S/Desktop/images -s test`
+	
+	> 例:`$ python3 imageSuffix.py -i /Users/S/Desktop/images -s test`
 	
 
 #### `imageSize.py`按大小输出图片文件名字
 - 统计文件夹下图片大小，输出文件路径,默认输出前10
 
 1. `python3 imageSize.py -i 项目路径 [-l 打印数量默认为10]`
-	例: `python3 imageSize.py -i /Users/S/Desktop/images -l 20`
+
+	>例:`python3 imageSize.py -i /Users/S/Desktop/images -l 20`
