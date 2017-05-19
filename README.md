@@ -7,7 +7,7 @@
 - 脚本使用python3编写,确认你的操作系统安装的python3
 - Mac上安装Python3, 推荐使用Homebrew安装, `brew install python3`, brew装好python3时候会自动安装pip3(python的包管理工具),部分脚本可能会使用到第三方模块。
 
-> 脚本使用方法
+### 脚本使用方法
 
 #### `tinyImages.py`批量图片压缩脚本
 - 该脚本使用[tinypng](https://tinypng.com/)提供的接口进行图片压缩,压缩前后图片质量基本没有差距,大小一般可以缩小50%左右,使用前需要[获取API key](https://tinypng.com/developers),只要填写邮箱就可以了。获取到APIKey后就可以使用脚本进行批量压缩了。网站限制为每个月调用500次接口，不够用换一个邮箱注册就可以了。
@@ -34,7 +34,7 @@
 
 2. `python3 remove1xImage.py -i 项目路径`  
 
-	> `$ python3 remove1xImage.py -i /Users/S/Desktop/testAPP`
+	>例:`$ python3 remove1xImage.py -i /Users/S/Desktop/testAPP`
 	
 
 #### `imageSuffix.py`批量给图片添加后缀
