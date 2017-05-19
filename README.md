@@ -39,7 +39,6 @@
 - 针对iOS的图片处理写的，对@2x,@3x图片也能正确添加后缀
 
 1. `python3 imageSuffix.py -i 输入目录 -s 后缀名 [-o 输出目录] [-r]`
-	
 	例，给所有图片添加`test`后缀:`$ python3 imageSuffix.py -i /Users/S/Desktop/images -s test`
 	
 
@@ -47,5 +46,4 @@
 - 统计文件夹下图片大小，输出文件路径,默认输出前10
 
 1. `python3 imageSize.py -i 项目路径 [-l 打印数量默认为10]`
-	
 	例: `python3 imageSize.py -i /Users/S/Desktop/images -l 20`
