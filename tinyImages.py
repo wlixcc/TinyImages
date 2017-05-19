@@ -100,23 +100,6 @@ async def wirteImg(to_file, url, session):
             print('\033[1;32;48m' + info + '\033[0m')
 
 
-opts = getopt.getopt(sys.argv[1:], 'i:o:a:rh')[0]
-for opt, value in opts:
-    if opt == '-i':
-        inputPath = value
-    elif opt == '-o':
-        outputPath = value
-    elif opt == '-r':
-        replace = True
-    elif opt == '-a':
-        authKey = value
-        authHedder['Authorization'] = 'Basic %s' % b64encode(bytes('api:'+authKey, 'ascii')).decode('ascii')
-    elif opt == '-h':
-        print('''
-            python3 tinyImages.py  -i 输入路径 -a authKey [-o 输出路径] [-r(直接替换原文件)]
-        ''')
-
-
 async def main(loop, fileNums):
     # 限制同一之间任务数量，打开过多的文件会有异常抛出
     limit = 150
@@ -141,12 +124,37 @@ async def main(loop, fileNums):
                 end = min(len(imgPaths), limit+end)
 
 
+
+try:
+    opts = getopt.getopt(sys.argv[1:], 'i:o:a:rh')[0]
+    for opt, value in opts:
+        if opt == '-i':
+            inputPath = value
+        elif opt == '-o':
+            outputPath = value
+        elif opt == '-r':
+            replace = True
+        elif opt == '-a':
+            authKey = value
+            authHedder['Authorization'] = 'Basic %s' % b64encode(bytes('api:' + authKey, 'ascii')).decode('ascii')
+        elif opt == '-h':
+            print('''
+                python3 tinyImages.py  -i 输入路径 -a authKey [-o 输出路径] [-r(直接替换原文件)]
+            ''')
+except getopt.GetoptError:
+    print('命令出错,使用-h获取帮助信息')
+
+
 if __name__ == '__main__':
     if inputPath == '':
         inputPath = input('请输入图片文件夹路径：')
+
     if authKey == '':
         authKey = input('请输入API key, 到https://tinypng.com/developers获取:')
         authHedder['Authorization'] = 'Basic %s' % b64encode(bytes('api:' + authKey, 'ascii')).decode('ascii')
+    if not os.path.isdir(inputPath):
+        print('目录不正确')
+        exit()
     if not replace:
         createOutput(inputPath)
     generatePath(inputPath, replace)

@@ -5,41 +5,31 @@
 import sys, getopt
 import os
 
+projectPath = ''
+sizeList = []
+pathLength = 0
+limit = 10
+
 def orderBySize(path):
     for x in os.listdir(path):
         abPath = os.path.join(path, x)
         if os.path.isdir(abPath):
-            if abPath.endswith('.xcassets'):
-                order(abPath)
-            else:
-                orderBySize(abPath)
-
-
-def order(path):
-    for x in os.listdir(path):
-        abPath = os.path.join(path, x)
-        if os.path.isdir(abPath) and abPath.endswith('.imageset'):
+            orderBySize(abPath)
+        else:
             addinfo(abPath)
-        elif os.path.isdir(abPath):
-            order(abPath)
-
 
 
 def addinfo(path):
-    for x in os.listdir(path):
-        abPath = os.path.join(path, x)
-        relPath = abPath[pathLength:]
-        if os.path.splitext(x)[1] == '.png':
-            info = (relPath, os.path.getsize(abPath))
-            list.append(info)
+    relPath = path[pathLength:]
+    suffix = os.path.splitext(path)[1]
+    if suffix == '.png' or suffix == '.jpg':
+        info = (relPath, os.path.getsize(path))
+        sizeList.append(info)
 
-projectPath = ''
-list = []
-pathLength = 0
-limit = 10
+
 
 try:
-    opts = getopt.getopt(sys.argv[1:], 'i:h')[0]
+    opts = getopt.getopt(sys.argv[1:], 'i:l:h')[0]
     for op, value in opts:
         if op == '-i':
             print('工程路径:%s\n' % value)
@@ -51,12 +41,12 @@ try:
               使用方法：  python3 imageSize.py -i 项目路径 [-l 打印数量]
             ''')
 except getopt.GetoptError:
-    print('使用-h获取帮助信息')
+    print('命令错误,使用-h获取帮助信息')
 
 if __name__=='__main__':
     if os.path.isdir(projectPath):
         pathLength = len(projectPath)
         orderBySize(projectPath)
-        list.sort(key=lambda x: x[1], reverse=True)
-        for x in list[:limit]:
+        sizeList.sort(key=lambda x: x[1], reverse=True)
+        for x in sizeList[:limit]:
             print(x)

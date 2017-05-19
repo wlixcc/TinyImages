@@ -10,8 +10,6 @@ def pyfile_config(path):
         elif os.path.isdir(abPath):
             pyfile_config(abPath)
 
-
-
 # 修改权限
 def changeMode(path):
     os.chmod(path, stat.S_IRWXU | stat.S_IXGRP | stat.S_IRGRP | stat.S_IROTH |stat.S_IXOTH)   #755权限
@@ -29,6 +27,5 @@ def addAnnotation(path):
             f.write(s)
             print('success-->', path)
 
-pyfile_config('/Users/S/Desktop/workMaterial/Python/iOSPythonScript')
 
 
