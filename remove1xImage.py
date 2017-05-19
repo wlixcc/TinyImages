@@ -64,9 +64,11 @@ except getopt.GetoptError:
 
 if __name__ == '__main__':
     if inputPath == '':
-         print('请输入项目路径,使用-h获取帮助信息')
-    else:
-        batch_remove_1ximage(inputPath)
+        inputPath = input('请输入项目路径:')
+    if not os.path.isdir(inputPath):
+        print('输入路径有误')
+        exit()
+    batch_remove_1ximage(inputPath)
 
 
 

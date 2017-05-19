@@ -22,6 +22,8 @@ inputPath = ''
 outputPath = ''
 replace = False
 imgPaths = []
+# 限制同一之间任务数量，打开过多的文件会有异常抛出
+limit = 200
 
 def createOutput(path):
     """
@@ -34,7 +36,6 @@ def createOutput(path):
     if outputPath == '':
         sp = os.path.split(path);
         outputPath = os.path.join(sp[0], sp[1]+'-Tiny')
-    print('\n---输出路径为:%s\n' % outputPath)
     if not os.path.exists(outputPath):
         os.mkdir(outputPath)
     # 父目录, 文件夹名字, 文件名
@@ -71,7 +72,10 @@ async def tinyImage(from_file, to_file, session):
     print('\033[1;34;48m准备上传-->:' + sp[1] + '\033[0m')
     url = ''
 
-    with open(from_file, 'rb') as source_img:
+    with open(from_file, 'rb') as f:
+         source_img = f.read()
+
+    try:
         async with session.post(apiAdress, data=source_img, headers=authHedder) as response:
             status = response.status
             if status == 201:
@@ -83,7 +87,8 @@ async def tinyImage(from_file, to_file, session):
                 print('本月数量已超过限制-->%s转换失败' % sp[1])
             else:
                 print('api接口调用出错:%s' % status)
-                url = '1'
+    except Exception as e:
+        print('上传异常:' % e)
 
     if not url == '':
         await wirteImg(to_file, url, session)
@@ -101,28 +106,14 @@ async def wirteImg(to_file, url, session):
 
 
 async def main(loop, fileNums):
-    # 限制同一之间任务数量，打开过多的文件会有异常抛出
-    limit = 150
     tasks = []
     # 根据图片文件数量计算长连接保持时间
-    timeout = min(fileNums * 2, 200)
-    tcpConnector = aiohttp.TCPConnector(keepalive_timeout=timeout, loop=loop)
+    tcpConnector = aiohttp.TCPConnector(loop=loop)
     async with aiohttp.ClientSession(loop=loop, connector=tcpConnector) as session:
         # 生成任务
         for i, o in imgPaths:
             tasks.append(tinyImage(i, o, session))
-        # 限制一次性执行任务的数量
-        start = 0
-        end = min(len(imgPaths), limit)
-        while True:
-            once = tasks[start:end]
-            await asyncio.wait(once)
-            if end == len(imgPaths):
-                break
-            else:
-                start = end
-                end = min(len(imgPaths), limit+end)
-
+        await asyncio.wait(tasks)
 
 
 try:
@@ -147,16 +138,25 @@ except getopt.GetoptError:
 
 if __name__ == '__main__':
     if inputPath == '':
-        inputPath = input('请输入图片文件夹路径：')
-
+        inputPath = input('请输入图片文件夹路径：').strip()
+        while True:
+            r = input('是否直接替换(yes/no): ').lower()
+            if r == 'yes':
+                replace = True
+                break
+            elif r == 'no':
+                break
+            else:
+                print('请输入yes/no')
     if authKey == '':
-        authKey = input('请输入API key, 到https://tinypng.com/developers获取:')
+        authKey = input('请输入API key, 到https://tinypng.com/developers获取:').strip()
         authHedder['Authorization'] = 'Basic %s' % b64encode(bytes('api:' + authKey, 'ascii')).decode('ascii')
     if not os.path.isdir(inputPath):
         print('目录不正确')
         exit()
     if not replace:
         createOutput(inputPath)
+        print('图片文件输出到 %s' % outputPath)
     generatePath(inputPath, replace)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main(loop, fileNums=len(imgPaths)))
