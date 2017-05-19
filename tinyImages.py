@@ -1,14 +1,27 @@
 """
-使用 https://tinypng.com/developers/reference/python 提供的接口进行图片缩小
-    pip3 install --upgrade tinify
+使用 https://tinypng.com/developers/reference#compressing-images 提供的接口进行图片压缩
 """
 
 import os, sys, getopt
-import tinify
-# from multiprocessing import Pool
+from base64 import b64encode
 import asyncio
+import aiohttp
+# import logging
 
-tinify.key = 'PX-pm9lAY3siS8cHIWz44zWFZHj6TtYX'
+# logging.basicConfig(level=logging.INFO,
+#                     format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+#                     datefmt='%Y-%m-%d %H:%M:%S',
+#                     filename='tinyimage.log',
+#                     filemode='a+')
+
+# authKey = 'PX-pm9lAY3siS8cHIWz44zWFZHj6TtYX'
+apiAdress = 'https://api.tinify.com/shrink'
+authKey = ''
+authHedder = {}
+inputPath = ''
+outputPath = ''
+replace = False
+imgPaths = []
 
 def createOutput(path):
     """
@@ -33,7 +46,7 @@ def createOutput(path):
             if not os.path.exists(newPath):
                 os.mkdir(newPath)
 
-async def tinyImages(path, replace):
+def generatePath(path, replace):
     """
        :param path: 文件路径
        :param replace: 是否直接替换
@@ -43,31 +56,51 @@ async def tinyImages(path, replace):
         absPath = os.path.join(path, x)
 
         if os.path.isdir(absPath):
-            tinyImages(absPath, replace)
+            generatePath(absPath, replace)
         elif os.path.splitext(x)[1] == '.png' or os.path.splitext(x)[1] == '.jpg':
             if replace:
                 newPath = absPath
             else:
                 relPath = os.path.relpath(path, inputPath)
                 newPath = os.path.join(outputPath, relPath, x)
-            await tinyImage(absPath, newPath)
+            imgPaths.append((absPath, newPath))
+
+async def tinyImage(from_file, to_file, session):
+
+    sp = os.path.split(to_file)
+    print('\033[1;34;48m准备上传-->:' + sp[1] + '\033[0m')
+    url = ''
+
+    with open(from_file, 'rb') as source_img:
+        async with session.post(apiAdress, data=source_img, headers=authHedder) as response:
+            status = response.status
+            if status == 201:
+                json = await response.json()
+                # wirteToFile(json)
+                url = json['output']['url']
+                await wirteImg(to_file, url, session)
+            elif status == 429:
+                print('本月数量已超过限制-->%s转换失败' % sp[1])
+            else:
+                print('api接口调用出错:%s' % status)
+                url = '1'
+
+    if not url == '':
+        await wirteImg(to_file, url, session)
+
+# def wirteToFile(info):
+#     logging.debug(info)
+
+async def wirteImg(to_file, url, session):
+    async with session.get(url, headers={'Content-Type': 'application/json'}) as response:
+        newImg = await response.read()
+        with open(to_file, 'wb') as compress_img:
+            compress_img.write(newImg)
+            info = '成功----> %s' % to_file
+            print('\033[1;32;48m' + info + '\033[0m')
 
 
-
-
-async def tinyImage(source, to_file):
-    # await source = tinify.from_file(source)
-    # await source.to_file(to_file)
-    await asyncio.sleep(1)
-    info = '%s ----> %s' % (source, to_file)
-    print('\033[1;32;48m' + info + '\033[0m')
-
-inputPath = ''
-outputPath = ''
-replace = False
-# p = Pool(4)
-
-opts = getopt.getopt(sys.argv[1:], 'i:o:rh')[0]
+opts = getopt.getopt(sys.argv[1:], 'i:o:a:rh')[0]
 for opt, value in opts:
     if opt == '-i':
         inputPath = value
@@ -75,22 +108,49 @@ for opt, value in opts:
         outputPath = value
     elif opt == '-r':
         replace = True
+    elif opt == '-a':
+        authKey = value
+        authHedder['Authorization'] = 'Basic %s' % b64encode(bytes('api:'+authKey, 'ascii')).decode('ascii')
     elif opt == '-h':
         print('''
-            python3 tinyImages.py  -i 输入路径 [-o 输出路径] [-r(直接替换原文件)]
+            python3 tinyImages.py  -i 输入路径 -a authKey [-o 输出路径] [-r(直接替换原文件)]
         ''')
+
+
+async def main(loop, fileNums):
+    # 限制同一之间任务数量，打开过多的文件会有异常抛出
+    limit = 150
+    tasks = []
+    # 根据图片文件数量计算长连接保持时间
+    timeout = min(fileNums * 2, 200)
+    tcpConnector = aiohttp.TCPConnector(keepalive_timeout=timeout, loop=loop)
+    async with aiohttp.ClientSession(loop=loop, connector=tcpConnector) as session:
+        # 生成任务
+        for i, o in imgPaths:
+            tasks.append(tinyImage(i, o, session))
+        # 限制一次性执行任务的数量
+        start = 0
+        end = min(len(imgPaths), limit)
+        while True:
+            once = tasks[start:end]
+            await asyncio.wait(once)
+            if end == len(imgPaths):
+                break
+            else:
+                start = end
+                end = min(len(imgPaths), limit+end)
 
 
 if __name__ == '__main__':
     if inputPath == '':
-        print('请输入图片文件夹路径,使用-h获取帮助')
-    else:
+        inputPath = input('请输入图片文件夹路径：')
+    if authKey == '':
+        authKey = input('请输入API key, 到https://tinypng.com/developers获取:')
+        authHedder['Authorization'] = 'Basic %s' % b64encode(bytes('api:' + authKey, 'ascii')).decode('ascii')
+    if not replace:
         createOutput(inputPath)
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete( tinyImages(inputPath, replace))
-        loop.close()
+    generatePath(inputPath, replace)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main(loop, fileNums=len(imgPaths)))
+    loop.close()
 
-        # print('等待所有图片转换')
-        # p.close()
-        # p.join()
-        # print('所有任务完成')
