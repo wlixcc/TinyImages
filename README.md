@@ -22,6 +22,7 @@
 	  如果直接替换图片,使用前最好备份,以免出现接口调用上限等意外情况造成只有部分图片压缩的情况。
 
 - 运行示例
+	
 	![运行示例](http://oqc26haeb.bkt.clouddn.com/readmeImages/tinyShot.png)
 
 	>  该脚本使用[tinypng](https://tinypng.com/)提供的接口进行图片压缩,压缩前后图片质量基本没有差距,大小一般可以缩小50%左右,使用前需要[获取API key](https://tinypng.com/developers),只要填写邮箱就可以了。获取到APIKey后就可以使用脚本进行批量压缩了。网站限制为每个月调用500次接口，不够用换一个邮箱注册就可以了。
