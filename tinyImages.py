@@ -22,8 +22,8 @@ inputPath = ''
 outputPath = ''
 replace = False
 imgPaths = []
-# 限制同一之间任务数量，打开过多的文件会有异常抛出
-limit = 200
+taskNum = 0
+
 
 def createOutput(path):
     """
@@ -38,7 +38,7 @@ def createOutput(path):
         outputPath = os.path.join(sp[0], sp[1]+'-Tiny')
     if not os.path.exists(outputPath):
         os.mkdir(outputPath)
-    # 父目录, 文件夹名字, 文件名
+    # 父目录, 文件夹名字list, 文件名list
     for parent, directories, files in list(os.walk(path)):
         for dir in directories:
             # relpath,接收2个参数，第二个参数可选，返回相对路径
@@ -69,7 +69,7 @@ def generatePath(path, replace):
 async def tinyImage(from_file, to_file, session):
 
     sp = os.path.split(to_file)
-    print('\033[1;34;48m准备上传-->:' + sp[1] + '\033[0m')
+    # print('\033[1;34;48m准备上传-->:' + sp[1] + '\033[0m')
     url = ''
 
     with open(from_file, 'rb') as f:
@@ -79,10 +79,10 @@ async def tinyImage(from_file, to_file, session):
         async with session.post(apiAdress, data=source_img, headers=authHedder) as response:
             status = response.status
             if status == 201:
+                print('\033[1;34;48m上传完成-->:' + sp[1] + '\033[0m')
                 json = await response.json()
                 # wirteToFile(json)
                 url = json['output']['url']
-                await wirteImg(to_file, url, session)
             elif status == 429:
                 print('本月数量已超过限制-->%s转换失败' % sp[1])
             else:
@@ -97,12 +97,14 @@ async def tinyImage(from_file, to_file, session):
 #     logging.debug(info)
 
 async def wirteImg(to_file, url, session):
+    global taskNum
     async with session.get(url, headers={'Content-Type': 'application/json'}) as response:
         newImg = await response.read()
         with open(to_file, 'wb') as compress_img:
             compress_img.write(newImg)
-            info = '成功----> %s' % to_file
-            print('\033[1;32;48m' + info + '\033[0m')
+        taskNum -= 1
+        info = '成功(剩余任务数量：%s)----> %s' % (taskNum, to_file)
+        print('\033[1;32;48m' + info + '\033[0m')
 
 
 async def main(loop, fileNums):
@@ -158,6 +160,12 @@ if __name__ == '__main__':
         createOutput(inputPath)
         print('图片文件输出到 %s' % outputPath)
     generatePath(inputPath, replace)
+    taskNum = len(imgPaths)
+    if taskNum > 500:
+        r = input('任务数量为%s,超过500')
+        exit()
+    else:
+        print('任务数量%s' % taskNum)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main(loop, fileNums=len(imgPaths)))
     loop.close()
