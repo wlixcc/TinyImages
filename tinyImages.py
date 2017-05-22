@@ -162,7 +162,7 @@ if __name__ == '__main__':
     generatePath(inputPath, replace)
     taskNum = len(imgPaths)
     if taskNum > 500:
-        r = input('任务数量为%s,超过500')
+        r = input('任务数量为%s,超过500', taskNum)
         exit()
     else:
         print('任务数量%s' % taskNum)
