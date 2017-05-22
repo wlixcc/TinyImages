@@ -8,8 +8,8 @@
 		$ brew install python3
 	 brew装好python3时候会自动安装pip3(python的包管理工具),`tinyImages.py`脚本使用前需要先安装第三方模块。
 
-
-#### <font color=#0099ff>`tinyImages.py`批量图片压缩脚本</font>
+-----------
+### `tinyImages.py`批量图片压缩脚本
 
 
 1. 使用前面提到的pip3安装第三方模块
@@ -40,8 +40,8 @@
 
 - 目前一次性替换最大数量为500,后续版本应该会添加多个APIkey的支持,一个apikey使用达到上限后自动切换。突破压缩数量最大为500的限制
 
-
-#### <font color=#0099ff>`remove1xImage.py`批量删除.xcassets目录下的1x的图片</font>
+----------------
+### `remove1xImage.py`批量删除.xcassets目录下的1x的图片
 1.  直接运行脚本
 	   
 	    $ python3 remove1xImage.py
@@ -53,16 +53,16 @@
 
 	    $ python3 remove1xImage.py -i /Users/S/Desktop/testAPP
 	
-
-#### <font color=#0099ff>`imageSuffix.py`批量给图片添加后缀</font>
+------------
+### `imageSuffix.py`批量给图片添加后缀
 - 针对iOS的图片处理写的，对@2x,@3x图片也能正确添加后缀
 
         $ python3 imageSuffix.py -i 输入目录 -s 后缀名 [-o 输出目录] [-r]
 	    #给/Users/S/Desktop/images路径下的所有图片添加'test'后缀
 	    $ python3 imageSuffix.py -i /Users/S/Desktop/images -s test
 	
-
-#### <font color=#0099ff>`imageSize.py`按大小输出图片文件名字</font>
+-----------
+### `imageSize.py`按大小输出图片文件名字
 - 统计文件夹下图片大小，输出文件路径,默认输出前10
 
         $ python3 imageSize.py -i 项目路径 [-l 打印数量默认为10]
