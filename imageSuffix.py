@@ -4,6 +4,11 @@
 
 import os, shutil, getopt, sys
 
+inputPath = ''
+outputPath = ''
+suffix = ''
+replace = False
+
 def createOutput(path):
     """
     :param path: 输入path位inputpath,用来计算相对路径
@@ -61,7 +66,7 @@ def addSuffix(path, suffix, replace):
                 shutil.copyfile(absPath, newPath)
 
 
-def main(path, suffix, output = '', replace = False):
+def main(path, suffix, output, replace):
 
     global inputPath, outputPath
     inputPath = path
@@ -78,10 +83,7 @@ def main(path, suffix, output = '', replace = False):
         createOutput(path)
     addSuffix(path, suffix, replace)
 
-inputPath = ''
-outputPath = ''
-suffix = ''
-replace = False
+
 
 try:
     opts = getopt.getopt(sys.argv[1:], 'i:s:o:rh')[0]
