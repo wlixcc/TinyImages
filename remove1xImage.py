@@ -2,27 +2,30 @@
 # -*- coding: utf-8 -*-
 """用于去除.xcasssets文件夹下的所有1x图片"""
 
-import os, sys, getopt
+import os
+import sys
+import getopt
 import json
+
 
 def batch_remove_1ximage(path):
     if not isinstance(path, str) or not os.path.isdir(path):
         return
     for abpath in [os.path.join(path, x) for x in os.listdir(path)]:
         if os.path.isdir(abpath) and abpath.endswith('.xcassets'):
-            searchImages(abpath)
+            search_images(abpath)
         else:
             batch_remove_1ximage(abpath)
 
 
-def searchImages(path):
+def search_images(path):
     if not os.path.isdir(path):
         return
     for abpath in [os.path.join(path, x) for x in os.listdir(path)]:
         if os.path.isdir(abpath) and abpath.endswith('.imageset'):
             remove1ximage(abpath)
         else:
-            searchImages(abpath)  #子文件夹处理
+            search_images(abpath)  # 子文件夹处理
 
 
 def remove1ximage(path):
@@ -33,10 +36,10 @@ def remove1ximage(path):
             os.remove(abpath)
             print('del----->%s' % abpath)
         if abpath.endswith('.json'):
-            alterJson(abpath)
+            alter_json(abpath)
 
 
-def alterJson(path):
+def alter_json(path):
     with open(path) as f:
         dic = json.loads(f.read())
         if 'filename' in dic['images'][0]:
@@ -69,12 +72,3 @@ if __name__ == '__main__':
         print('输入路径有误')
         exit()
     batch_remove_1ximage(inputPath)
-
-
-
-
-
-
-
-
-

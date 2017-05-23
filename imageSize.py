@@ -2,30 +2,31 @@
 # -*- coding: utf-8 -*-
 """按图片尺寸从大到小打印图片相对路径,默认打印最大的10张图片,数量可以通过-l参数更改, -i参后带项目路径"""
 
-import sys, getopt
+import sys
 import os
+import getopt
 
 projectPath = ''
 sizeList = []
 pathLength = 0
 limit = 10
 
-def orderBySize(path):
-    for x in os.listdir(path):
-        abPath = os.path.join(path, x)
-        if os.path.isdir(abPath):
-            orderBySize(abPath)
+
+def order_by_size(path):
+    for sub_path in os.listdir(path):
+        ab_path = os.path.join(path, sub_path)
+        if os.path.isdir(ab_path):
+            order_by_size(ab_path)
         else:
-            addinfo(abPath)
+            addinfo(ab_path)
 
 
 def addinfo(path):
-    relPath = path[pathLength:]
+    rel_path = path[pathLength:]
     suffix = os.path.splitext(path)[1]
     if suffix == '.png' or suffix == '.jpg':
-        info = (relPath, os.path.getsize(path))
+        info = (rel_path, os.path.getsize(path))
         sizeList.append(info)
-
 
 
 try:
@@ -43,10 +44,10 @@ try:
 except getopt.GetoptError:
     print('命令错误,使用-h获取帮助信息')
 
-if __name__=='__main__':
+if __name__ == '__main__':
     if os.path.isdir(projectPath):
         pathLength = len(projectPath)
-        orderBySize(projectPath)
+        order_by_size(projectPath)
         sizeList.sort(key=lambda x: x[1], reverse=True)
-        for x in sizeList[:limit]:
-            print(x)
+        for img_path in sizeList[:limit]:
+            print(img_path)

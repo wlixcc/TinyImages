@@ -2,10 +2,13 @@
 使用 https://tinypng.com/developers/reference#compressing-images 提供的接口进行图片压缩
 """
 
-import os, sys, getopt
+import os
+import sys
+import getopt
 from base64 import b64encode
 import asyncio
 import aiohttp
+
 # import logging
 
 # logging.basicConfig(level=logging.INFO,
@@ -25,55 +28,58 @@ imgPaths = []
 taskNum = 0
 
 
-def createOutput(path):
+def create_output_dirs(in_dir, out_dir):
     """
-    :param path: 输入path位inputpath,用来计算相对路径
-    :return: None
+    根据输入路径创建输出文件夹
+    :param in_dir: 输入路径
+    :param out_dir: 输出路径
+    :return: 输出路径
     """
-    global outputPath
-
     # 创建默认输出目录
-    if outputPath == '':
-        sp = os.path.split(path);
-        outputPath = os.path.join(sp[0], sp[1]+'-Tiny')
-    if not os.path.exists(outputPath):
-        os.mkdir(outputPath)
-    # 父目录, 文件夹名字list, 文件名list
-    for parent, directories, files in list(os.walk(path)):
-        for dir in directories:
+    if out_dir == '':
+        (parent, child) = os.path.split(in_dir)
+        out_dir = os.path.join(parent, '{0}-Tiny'.format(child))
+    print('\n---输出路径为:%s\n' % out_dir)
+    if not os.path.exists(out_dir):
+        os.mkdir(out_dir)
+    # 父目录, 文件夹名字, 文件名
+    for parent, directories, files in list(os.walk(in_dir)):
+        for dirname in directories:
             # relpath,接收2个参数，第二个参数可选，返回相对路径
-            relPath = os.path.relpath(os.path.join(parent, dir), inputPath)
-            newPath = os.path.join(outputPath, relPath)
-            if not os.path.exists(newPath):
-                os.mkdir(newPath)
+            rel_path = os.path.relpath(os.path.join(parent, dirname), in_dir)
+            new_path = os.path.join(out_dir, rel_path)
+            if not os.path.exists(new_path):
+                os.mkdir(new_path)
+    return out_dir
 
-def generatePath(path, replace):
+
+def generate_paths(path):
     """
+       生成输入输出路径列表
        :param path: 文件路径
-       :param replace: 是否直接替换
-       :return: None
+       :return None
     """
     for x in os.listdir(path):
-        absPath = os.path.join(path, x)
+        abs_path = os.path.join(path, x)
 
-        if os.path.isdir(absPath):
-            generatePath(absPath, replace)
+        if os.path.isdir(abs_path):
+            generate_paths(abs_path)
         elif os.path.splitext(x)[1] == '.png' or os.path.splitext(x)[1] == '.jpg':
             if replace:
-                newPath = absPath
+                new_path = abs_path
             else:
-                relPath = os.path.relpath(path, inputPath)
-                newPath = os.path.join(outputPath, relPath, x)
-            imgPaths.append((absPath, newPath))
+                rel_path = os.path.relpath(path, inputPath)
+                new_path = os.path.join(outputPath, rel_path, x)
+            imgPaths.append((abs_path, new_path))
 
-async def tinyImage(from_file, to_file, session):
 
+async def tiny_image(from_file, to_file, session):
     sp = os.path.split(to_file)
     # print('\033[1;34;48m准备上传-->:' + sp[1] + '\033[0m')
     url = ''
 
     with open(from_file, 'rb') as f:
-         source_img = f.read()
+        source_img = f.read()
 
     try:
         async with session.post(apiAdress, data=source_img, headers=authHedder) as response:
@@ -91,30 +97,31 @@ async def tinyImage(from_file, to_file, session):
         print('上传异常:' % e)
 
     if not url == '':
-        await wirteImg(to_file, url, session)
+        await wirte_img(to_file, url, session)
+
 
 # def wirteToFile(info):
 #     logging.debug(info)
 
-async def wirteImg(to_file, url, session):
+async def wirte_img(to_file, url, session):
     global taskNum
     async with session.get(url, headers={'Content-Type': 'application/json'}) as response:
-        newImg = await response.read()
+        new_img = await response.read()
         with open(to_file, 'wb') as compress_img:
-            compress_img.write(newImg)
+            compress_img.write(new_img)
         taskNum -= 1
         info = '成功(剩余任务数量：%s)----> %s' % (taskNum, to_file)
         print('\033[1;32;48m' + info + '\033[0m')
 
 
-async def main(loop, fileNums):
+async def main():
     tasks = []
     # 根据图片文件数量计算长连接保持时间
-    tcpConnector = aiohttp.TCPConnector(loop=loop)
-    async with aiohttp.ClientSession(loop=loop, connector=tcpConnector) as session:
+    tcp_connector = aiohttp.TCPConnector(loop=loop)
+    async with aiohttp.ClientSession(loop=loop, connector=tcp_connector) as session:
         # 生成任务
         for i, o in imgPaths:
-            tasks.append(tinyImage(i, o, session))
+            tasks.append(tiny_image(i, o, session))
         await asyncio.wait(tasks)
 
 
@@ -137,7 +144,6 @@ try:
 except getopt.GetoptError:
     print('命令出错,使用-h获取帮助信息')
 
-
 if __name__ == '__main__':
     if inputPath == '':
         inputPath = input('请输入图片文件夹路径：').strip()
@@ -157,9 +163,9 @@ if __name__ == '__main__':
         print('目录不正确')
         exit()
     if not replace:
-        createOutput(inputPath)
+        outputPath = create_output_dirs(inputPath, outputPath)
         print('图片文件输出到 %s' % outputPath)
-    generatePath(inputPath, replace)
+    generate_paths(inputPath)
     taskNum = len(imgPaths)
     if taskNum > 500:
         r = input('任务数量为%s,超过500', taskNum)
@@ -167,6 +173,5 @@ if __name__ == '__main__':
     else:
         print('任务数量%s' % taskNum)
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main(loop, fileNums=len(imgPaths)))
+    loop.run_until_complete(main())
     loop.close()
-
